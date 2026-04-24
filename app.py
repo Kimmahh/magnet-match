@@ -37,6 +37,19 @@ def run_query(sql: str, params: tuple[Any, ...] = ()) -> Any:
     return get_db().execute(placeholder_sql(sql), params)
 
 
+def run_many(sql: str, params_seq: list[tuple[Any, ...]]) -> None:
+    if not params_seq:
+        return
+
+    db = get_db()
+    statement = placeholder_sql(sql)
+    if is_postgres():
+        with db.cursor() as cursor:
+            cursor.executemany(statement, params_seq)
+    else:
+        db.executemany(statement, params_seq)
+
+
 def parse_numbers(raw_value: str) -> list[int]:
     values: set[int] = set()
     for token in raw_value.replace("\n", ",").replace(";", ",").split(","):
@@ -124,12 +137,12 @@ def replace_collection(user_id: int, wishlist: list[int], duplicates: list[int])
     db = get_db()
     db.execute(placeholder_sql("DELETE FROM user_wishlist WHERE user_id = ?"), (user_id,))
     db.execute(placeholder_sql("DELETE FROM user_duplicates WHERE user_id = ?"), (user_id,))
-    db.executemany(
-        placeholder_sql("INSERT INTO user_wishlist (user_id, magnet_number) VALUES (?, ?)"),
+    run_many(
+        "INSERT INTO user_wishlist (user_id, magnet_number) VALUES (?, ?)",
         [(user_id, value) for value in wishlist],
     )
-    db.executemany(
-        placeholder_sql("INSERT INTO user_duplicates (user_id, magnet_number) VALUES (?, ?)"),
+    run_many(
+        "INSERT INTO user_duplicates (user_id, magnet_number) VALUES (?, ?)",
         [(user_id, value) for value in duplicates],
     )
     db.commit()
@@ -179,13 +192,13 @@ def collection_state(user_id: int) -> dict[str, list[int]]:
 def remove_numbers_from_collection(user_id: int, wishlist_to_remove: list[int], duplicates_to_remove: list[int]) -> None:
     db = get_db()
     if wishlist_to_remove:
-        db.executemany(
-            placeholder_sql("DELETE FROM user_wishlist WHERE user_id = ? AND magnet_number = ?"),
+        run_many(
+            "DELETE FROM user_wishlist WHERE user_id = ? AND magnet_number = ?",
             [(user_id, value) for value in wishlist_to_remove],
         )
     if duplicates_to_remove:
-        db.executemany(
-            placeholder_sql("DELETE FROM user_duplicates WHERE user_id = ? AND magnet_number = ?"),
+        run_many(
+            "DELETE FROM user_duplicates WHERE user_id = ? AND magnet_number = ?",
             [(user_id, value) for value in duplicates_to_remove],
         )
     db.commit()
