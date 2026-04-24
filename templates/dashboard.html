@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="grid">
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Mon profil</p>
+          <h2>Collection et ville</h2>
+        </div>
+      </div>
+      <form class="form-grid" method="post" action="{{ url_for('update_profile') }}">
+        <label>Pseudo<input name="username" value="{{ profile['username'] }}" required /></label>
+        <label>Ville<input name="city" value="{{ profile['city'] or '' }}" required /></label>
+        <label>Email<input name="email" type="email" value="{{ profile['email'] }}" required /></label>
+        <label class="full">
+          Mes manquants
+          <textarea name="wishlist" rows="3" placeholder="Exemple: 1, 4, 8, 15">{{ collection.wishlist_all | join(', ') }}</textarea>
+          <small class="helper-text">Saisis les numeros separes par des virgules. Exemple: `1, 4, 8, 15`</small>
+        </label>
+        <label class="full">
+          Mes doubles
+          <textarea name="duplicates" rows="3" placeholder="Exemple: 2, 3, 9, 14">{{ collection.duplicates_all | join(', ') }}</textarea>
+          <small class="helper-text">Meme principe: une liste de numeros separes par des virgules.</small>
+        </label>
+        <button class="button button--primary full" type="submit">Enregistrer</button>
+      </form>
+      <div class="danger-zone">
+        <strong>Desinscription du site</strong>
+        <p class="muted">Cette action supprime ton compte et tes echanges associes.</p>
+        <form method="post" action="{{ url_for('delete_account') }}" onsubmit="return confirm('Supprimer definitivement ton compte ?');">
+          <button class="button button--danger" type="submit">Se desinscrire du site</button>
+        </form>
+      </div>
+
+      <div class="collection-sections">
+        <div class="status-card">
+          <strong>Mes manquants</strong>
+          <div>{{ format_numbers(collection.wishlist_available) }}</div>
+        </div>
+        <div class="status-card status-card--reserved">
+          <strong>Manquants en cours d'echange</strong>
+          <div>{{ format_numbers(collection.wishlist_reserved) }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Mes doubles</strong>
+          <div>{{ format_numbers(collection.duplicates_available) }}</div>
+        </div>
+        <div class="status-card status-card--reserved">
+          <strong>Doubles en cours d'echange</strong>
+          <div>{{ format_numbers(collection.duplicates_reserved) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Avis recus</p>
+          <h2>Ta reputation</h2>
+        </div>
+      </div>
+      <p class="rating-big">
+        {% if reviews %}
+          {{ reviews | selectattr('target_user_id', 'equalto', profile['id']) | list | length }} avis visibles
+        {% else %}
+          Aucun avis pour le moment
+        {% endif %}
+      </p>
+      <p class="muted">Plus tu finalises d'echanges propres, plus les autres te feront confiance.</p>
+    </section>
+
+    <section class="panel full-width" id="matching">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Matching</p>
+          <h2>Profils compatibles</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        {% if matches %}
+          {% for match in matches %}
+            <article class="card">
+              <div class="card__top">
+                <div>
+                  <h3>{{ match.user["username"] }}</h3>
+                  <p class="muted">
+                    {{ match.user["city"] or "Ville non renseignee" }}
+                    {% if match.rating %}
+                      • {{ match.rating }}/5
+                    {% endif %}
+                  </p>
+                </div>
+                <span class="pill pill--good">{{ match.score }}% compatible</span>
+              </div>
+              <p><strong>Peut te donner:</strong> {{ format_numbers(match.offer_to_me) }}</p>
+              <p><strong>Tu peux donner:</strong> {{ format_numbers(match.offer_to_them) }}</p>
+              <p class="muted">Les details pratiques se reglent directement dans le chat apres accord.</p>
+
+              {% if match.existing_trade %}
+                {% if match.existing_trade["status"] == "accepted" %}
+                  <div class="inline-actions">
+                    <span class="pill pill--good">Echange accepte</span>
+                    <a class="button button--primary" href="{{ url_for('home', trade_id=match.existing_trade['id'], chat=1) }}#chat">Tchat</a>
+                  </div>
+                {% else %}
+                  <div class="inline-actions">
+                    <span class="pill">En attente d'acceptation</span>
+                    <a class="button button--ghost" href="{{ url_for('home', trade_id=match.existing_trade['id']) }}#trades">Voir la demande</a>
+                  </div>
+                {% endif %}
+              {% else %}
+                <form method="post" action="{{ url_for('start_trade', target_user_id=match.user['id']) }}">
+                  <button class="button button--primary" type="submit">Selectionner cet echange</button>
+                </form>
+              {% endif %}
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">Ajoute tes manquants et tes doubles disponibles pour voir apparaitre des matchs.</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="panel" id="trades">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Demandes</p>
+          <h2>Mes echanges</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        {% if trades %}
+          {% for item in trades %}
+            {% set trade = item.trade %}
+            {% set counterpart = item.counterpart %}
+            <article class="card">
+              <div class="card__top">
+                <div>
+                  <h3>{{ counterpart["username"] if counterpart else "Utilisateur" }}</h3>
+                  <p class="muted">{{ trade["created_at"] }}</p>
+                </div>
+                {% if trade["status"] == "accepted" %}
+                  <span class="pill pill--good">Accepte</span>
+                {% elif trade["status"] == "pending" %}
+                  <span class="pill">En attente d'acceptation</span>
+                {% elif trade["status"] == "completed" %}
+                  <span class="pill pill--good">Valide</span>
+                {% else %}
+                  <span class="pill">Annule</span>
+                {% endif %}
+              </div>
+              <p><strong>Tu recois:</strong> {{ format_numbers(trade["offer_to_requester"] if trade["requester_user_id"] == profile["id"] else trade["offer_to_target"]) }}</p>
+              <p><strong>Tu donnes:</strong> {{ format_numbers(trade["offer_to_target"] if trade["requester_user_id"] == profile["id"] else trade["offer_to_requester"]) }}</p>
+              <div class="inline-actions">
+                <a class="button button--ghost" href="{{ url_for('home', trade_id=trade['id']) }}#trades">Ouvrir</a>
+                {% if trade["status"] == "accepted" %}
+                  <a class="button button--primary" href="{{ url_for('home', trade_id=trade['id'], chat=1) }}#chat">Tchat</a>
+                  <form method="post" action="{{ url_for('finalize_trade', trade_id=trade['id']) }}">
+                    <input type="hidden" name="decision" value="validated" />
+                    <button class="button button--primary" type="submit">Echange valide</button>
+                  </form>
+                  <form method="post" action="{{ url_for('finalize_trade', trade_id=trade['id']) }}">
+                    <input type="hidden" name="decision" value="invalidated" />
+                    <button class="button button--ghost" type="submit">Echange non valide</button>
+                  </form>
+                {% endif %}
+                {% if trade["status"] == "pending" %}
+                  {% if (trade["requester_user_id"] == profile["id"] and not trade["requester_accepted"]) or (trade["target_user_id"] == profile["id"] and not trade["target_accepted"]) %}
+                    <form method="post" action="{{ url_for('accept_trade', trade_id=trade['id']) }}">
+                      <button class="button button--primary" type="submit">Accepter l'echange</button>
+                    </form>
+                  {% endif %}
+                  <form method="post" action="{{ url_for('decline_trade', trade_id=trade['id']) }}">
+                    <button class="button button--ghost" type="submit">Refuser</button>
+                  </form>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">Aucune demande d'echange pour le moment.</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="panel" id="chat">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Tchat</p>
+          <h2>Acces rapide</h2>
+        </div>
+      </div>
+      <div class="empty-state">
+        Une fois l'echange accepte, un bouton <strong>Tchat</strong> apparait dans le matching et dans les demandes.
+      </div>
+    </section>
+
+    <section class="panel full-width">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Avis</p>
+          <h2>Evaluation apres echange</h2>
+        </div>
+      </div>
+      <form class="review-form" method="post" action="{{ url_for('create_review') }}">
+        <select name="trade_id" required>
+          <option value="">Choisir un echange accepte ou valide</option>
+          {% for item in trades %}
+            {% if item.trade["status"] == "accepted" or item.trade["status"] == "completed" %}
+              <option value="{{ item.trade['id'] }}">{{ item.counterpart["username"] if item.counterpart else "Utilisateur" }} - {{ item.trade["created_at"] }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <select name="rating" required>
+          <option value="5">5 / 5</option>
+          <option value="4">4 / 5</option>
+          <option value="3">3 / 5</option>
+          <option value="2">2 / 5</option>
+          <option value="1">1 / 5</option>
+        </select>
+        <input name="comment" placeholder="Ton commentaire" />
+        <button class="button button--primary" type="submit">Publier</button>
+      </form>
+
+      <div class="card-grid">
+        {% if reviews %}
+          {% for review in reviews %}
+            <article class="card">
+              <div class="card__top">
+                <div>
+                  <h3>{{ review["author_name"] }} → {{ review["target_name"] }}</h3>
+                  <p class="muted">{{ review["created_at"] }}</p>
+                </div>
+                <span class="pill pill--good">{{ review["rating"] }}/5</span>
+              </div>
+              <p>{{ review["comment"] }}</p>
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">Aucun avis publie pour le moment.</div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+
+  {% if open_chat and selected_trade %}
+    <div class="chat-modal-backdrop">
+      <div class="chat-modal">
+        <div class="chat-modal__top">
+          <div>
+            <strong>Tchat avec {{ selected_trade.counterpart["username"] if selected_trade.counterpart else "Utilisateur" }}</strong>
+            <div class="muted">Echange accepte</div>
+          </div>
+          <a class="button button--ghost" href="{{ url_for('home', trade_id=selected_trade.trade['id']) }}#trades">Fermer</a>
+        </div>
+        <div class="chat-box chat-box--modal">
+          {% for message in selected_trade.messages %}
+            <div class="message {% if message['author_user_id'] == profile['id'] %}message--me{% else %}message--other{% endif %}">
+              <div class="message__meta">{{ message["username"] }} • {{ message["created_at"] }}</div>
+              <div>{{ message["body"] }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        <form class="chat-form" method="post" action="{{ url_for('send_message', trade_id=selected_trade.trade['id']) }}">
+          <input name="body" placeholder="Ecris un message..." />
+          <button class="button button--primary" type="submit">Envoyer</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,62 @@
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  city TEXT,
+  phone TEXT,
+  exchange_info TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_wishlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  magnet_number INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS user_duplicates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  magnet_number INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS trades (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  requester_user_id INTEGER NOT NULL,
+  target_user_id INTEGER NOT NULL,
+  offer_to_requester TEXT NOT NULL,
+  offer_to_target TEXT NOT NULL,
+  requester_accepted INTEGER NOT NULL DEFAULT 0,
+  target_accepted INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (requester_user_id) REFERENCES users (id) ON DELETE CASCADE,
+  FOREIGN KEY (target_user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  trade_id INTEGER NOT NULL,
+  author_user_id INTEGER NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (trade_id) REFERENCES trades (id) ON DELETE CASCADE,
+  FOREIGN KEY (author_user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  trade_id INTEGER NOT NULL,
+  author_user_id INTEGER NOT NULL,
+  target_user_id INTEGER NOT NULL,
+  rating INTEGER NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (trade_id, author_user_id),
+  FOREIGN KEY (trade_id) REFERENCES trades (id) ON DELETE CASCADE,
+  FOREIGN KEY (author_user_id) REFERENCES users (id) ON DELETE CASCADE,
+  FOREIGN KEY (target_user_id) REFERENCES users (id) ON DELETE CASCADE
+);

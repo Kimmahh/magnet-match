@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="grid">
+    <section class="panel hero">
+      <p class="eyebrow">Pourquoi ce site</p>
+      <h2>Finir les echanges Facebook compliques</h2>
+      <p class="muted">
+        Inscris-toi, declare tes manquants et tes doubles, puis laisse Magnet Match
+        trouver les meilleurs profils pour echanger.
+      </p>
+      <ul class="feature-list">
+        <li>matching automatique</li>
+        <li>demandes d'echange</li>
+        <li>double validation</li>
+        <li>mini chat</li>
+        <li>avis apres echange</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Creer un compte</p>
+      <form class="form-grid" method="post" action="{{ url_for('register') }}">
+        <label>Pseudo<input name="username" required /></label>
+        <label>Ville<input name="city" required /></label>
+        <label>Email<input name="email" type="email" required /></label>
+        <label>Mot de passe<input name="password" type="password" required /></label>
+        <button class="button button--primary full" type="submit">Creer mon compte</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Connexion</p>
+      <form class="form-grid" method="post" action="{{ url_for('login') }}">
+        <label class="full">Email<input name="email" type="email" required /></label>
+        <label class="full">Mot de passe<input name="password" type="password" required /></label>
+        <button class="button button--primary full" type="submit">Me connecter</button>
+      </form>
+      <p class="muted">Comptes demo: `amelie@example.com`, `julien@example.com`, `sarah@example.com` avec `demo123`.</p>
+    </section>
+  </main>
+{% endblock %}

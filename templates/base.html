@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Magnet Match</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <script>
+      (function () {
+        const KEY = "magnet-match-scroll-y";
+
+        if ("scrollRestoration" in history) {
+          history.scrollRestoration = "manual";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+          const saved = sessionStorage.getItem(KEY);
+          if (saved !== null) {
+            requestAnimationFrame(() => {
+              window.scrollTo(0, Number(saved));
+              sessionStorage.removeItem(KEY);
+            });
+          }
+
+          document.querySelectorAll("form").forEach((form) => {
+            form.addEventListener("submit", () => {
+              sessionStorage.setItem(KEY, String(window.scrollY));
+            });
+          });
+
+          document.querySelectorAll("a.button").forEach((link) => {
+            link.addEventListener("click", () => {
+              sessionStorage.setItem(KEY, String(window.scrollY));
+            });
+          });
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Plateforme d'echange</p>
+          <h1>Magnet Match</h1>
+        </div>
+        <div class="topbar__actions">
+          {% if active_user %}
+            <span class="status-pill">Connecte: {{ active_user["username"] }}</span>
+            <form method="post" action="{{ url_for('logout') }}">
+              <button class="button button--ghost" type="submit">Deconnexion</button>
+            </form>
+          {% else %}
+            <span class="status-pill">Visiteur</span>
+          {% endif %}
+        </div>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="flash-stack">
+            {% for category, message in messages %}
+              <div class="flash flash--{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>
