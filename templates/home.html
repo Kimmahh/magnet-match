@@ -4,28 +4,28 @@
   <main class="grid">
     <section class="panel hero">
       <p class="eyebrow">Pourquoi ce site</p>
-      <h2>Finir les echanges Facebook compliques</h2>
+      <h2>Faciliter les échanges entre collectionneurs</h2>
       <p class="muted">
-        Inscris-toi, declare tes manquants et tes doubles, puis laisse Magnette Legaulois
-        trouver les meilleurs profils pour echanger.
+        Inscris-toi, déclare tes manquants et tes doubles, puis laisse Magnette Legaulois
+        trouver les meilleurs profils pour échanger.
       </p>
       <ul class="feature-list">
         <li>matching automatique</li>
-        <li>demandes d'echange</li>
+        <li>demandes d'échange</li>
         <li>double validation</li>
         <li>mini chat</li>
-        <li>avis apres echange</li>
+        <li>avis après échange</li>
       </ul>
     </section>
 
     <section class="panel">
-      <p class="eyebrow">Creer un compte</p>
+      <p class="eyebrow">Créer un compte</p>
       <form class="form-grid" method="post" action="{{ url_for('register') }}">
         <label>Pseudo<input name="username" required /></label>
         <label>Ville<input name="city" required /></label>
         <label>Email<input name="email" type="email" required /></label>
         <label>Mot de passe<input name="password" type="password" required /></label>
-        <button class="button button--primary full" type="submit">Creer mon compte</button>
+        <button class="button button--primary full" type="submit">Créer mon compte</button>
       </form>
     </section>
 
@@ -36,7 +36,7 @@
         <label class="full">Mot de passe<input name="password" type="password" required /></label>
         <button class="button button--primary full" type="submit">Me connecter</button>
       </form>
-      <p class="muted">Connecte-toi avec le compte que tu as cree dans l'application.</p>
+      <p class="muted">Connecte-toi avec le compte que tu as créé dans l'application.</p>
     </section>
   </main>
 {% endblock %}
