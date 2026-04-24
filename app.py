@@ -358,6 +358,29 @@ def home() -> str:
     )
 
 
+@app.route("/admin")
+def admin_dashboard() -> str:
+    user = login_required()
+    if not user:
+        return redirect(url_for("home"))
+
+    stats = {
+        "users_total": row_value(run_query("SELECT COUNT(*) AS total FROM users").fetchone(), "total"),
+        "trades_total": row_value(run_query("SELECT COUNT(*) AS total FROM trades").fetchone(), "total"),
+        "trades_pending": row_value(run_query("SELECT COUNT(*) AS total FROM trades WHERE status = 'pending'").fetchone(), "total"),
+        "trades_accepted": row_value(run_query("SELECT COUNT(*) AS total FROM trades WHERE status = 'accepted'").fetchone(), "total"),
+        "trades_completed": row_value(run_query("SELECT COUNT(*) AS total FROM trades WHERE status = 'completed'").fetchone(), "total"),
+        "messages_total": row_value(run_query("SELECT COUNT(*) AS total FROM messages").fetchone(), "total"),
+        "reviews_total": row_value(run_query("SELECT COUNT(*) AS total FROM reviews").fetchone(), "total"),
+    }
+
+    latest_users = run_query(
+        "SELECT username, city, email, created_at FROM users ORDER BY id DESC LIMIT 10"
+    ).fetchall()
+
+    return render_template("admin.html", stats=stats, latest_users=latest_users)
+
+
 @app.route("/register", methods=["POST"])
 def register() -> str:
     username = request.form["username"].strip()

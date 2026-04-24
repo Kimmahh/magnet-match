@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="grid">
+    <section class="panel full-width">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Administration</p>
+          <h2>Tableau de bord</h2>
+        </div>
+      </div>
+      <div class="admin-stats">
+        <div class="status-card">
+          <strong>Utilisateurs inscrits</strong>
+          <div class="admin-number">{{ stats.users_total }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Echanges crees</strong>
+          <div class="admin-number">{{ stats.trades_total }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Echanges en attente</strong>
+          <div class="admin-number">{{ stats.trades_pending }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Echanges acceptes</strong>
+          <div class="admin-number">{{ stats.trades_accepted }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Echanges valides</strong>
+          <div class="admin-number">{{ stats.trades_completed }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Messages envoyes</strong>
+          <div class="admin-number">{{ stats.messages_total }}</div>
+        </div>
+        <div class="status-card">
+          <strong>Avis laisses</strong>
+          <div class="admin-number">{{ stats.reviews_total }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel full-width">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Recents</p>
+          <h2>Derniers utilisateurs</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        {% if latest_users %}
+          {% for user in latest_users %}
+            <article class="card">
+              <div class="card__top">
+                <div>
+                  <h3>{{ user["username"] }}</h3>
+                  <p class="muted">{{ user["email"] }}</p>
+                </div>
+                <span class="pill">{{ user["city"] or "Ville non renseignee" }}</span>
+              </div>
+              <p class="muted">Inscrit le {{ user["created_at"] }}</p>
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">Aucun utilisateur pour le moment.</div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+{% endblock %}

@@ -230,6 +230,18 @@ input, textarea, select {
   border-color: rgba(159, 108, 24, 0.2);
 }
 
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-number {
+  margin-top: 8px;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
 .danger-zone {
   margin-top: 14px;
   padding: 14px;
@@ -302,6 +314,10 @@ input, textarea, select {
   }
 
   .collection-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stats {
     grid-template-columns: 1fr;
   }
 

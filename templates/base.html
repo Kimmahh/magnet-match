@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Magnet Match</title>
+    <title>Magnette Legaulois</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <script>
       (function () {
@@ -42,11 +42,12 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Plateforme d'echange</p>
-          <h1>Magnet Match</h1>
+          <h1>Magnette Legaulois</h1>
         </div>
         <div class="topbar__actions">
           {% if active_user %}
             <span class="status-pill">Connecte: {{ active_user["username"] }}</span>
+            <a class="button button--ghost" href="{{ url_for('admin_dashboard') }}">Admin</a>
             <form method="post" action="{{ url_for('logout') }}">
               <button class="button button--ghost" type="submit">Deconnexion</button>
             </form>
