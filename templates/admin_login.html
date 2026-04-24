@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="grid">
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h2>Connexion admin</h2>
+        </div>
+      </div>
+      <form class="form-grid" method="post" action="{{ url_for('admin_login') }}">
+        <label class="full">
+          Mot de passe admin
+          <input name="password" type="password" required />
+        </label>
+        <button class="button button--primary full" type="submit">Entrer</button>
+      </form>
+      <p class="muted">Cette page protege l'acces au tableau de bord admin.</p>
+    </section>
+  </main>
+{% endblock %}

@@ -17,6 +17,7 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "magnet-match-local-secr
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FLASK_ENV") == "production"
+app.config["ADMIN_PASSWORD"] = os.environ.get("ADMIN_PASSWORD", "admin123")
 
 
 def get_db() -> Any:
@@ -80,6 +81,27 @@ def login_required() -> Any:
         flash("Connecte-toi pour acceder a cette zone.", "warning")
         return None
     return user
+
+
+def is_admin_candidate(user: Any | None) -> bool:
+    if not user:
+        return False
+    return (user["username"] or "").strip().lower() == "kima"
+
+
+def admin_logged_in() -> bool:
+    return bool(session.get("admin_logged_in"))
+
+
+def admin_required() -> bool:
+    user = current_user()
+    if not is_admin_candidate(user):
+        flash("Acces admin reserve au compte autorise.", "warning")
+        return False
+    if not admin_logged_in():
+        flash("Connecte-toi en admin pour acceder a cette page.", "warning")
+        return False
+    return True
 
 
 def user_wishlist(user_id: int) -> list[int]:
@@ -320,7 +342,12 @@ def create_trade(requester_id: int, target_id: int) -> int | None:
 
 @app.context_processor
 def inject_globals() -> dict[str, Any]:
-    return {"active_user": current_user(), "format_numbers": format_numbers}
+    return {
+        "active_user": current_user(),
+        "format_numbers": format_numbers,
+        "admin_logged_in": admin_logged_in(),
+        "admin_candidate": is_admin_candidate(current_user()),
+    }
 
 
 @app.route("/")
@@ -360,9 +387,8 @@ def home() -> str:
 
 @app.route("/admin")
 def admin_dashboard() -> str:
-    user = login_required()
-    if not user:
-        return redirect(url_for("home"))
+    if not admin_required():
+        return redirect(url_for("admin_login"))
 
     stats = {
         "users_total": row_value(run_query("SELECT COUNT(*) AS total FROM users").fetchone(), "total"),
@@ -379,6 +405,32 @@ def admin_dashboard() -> str:
     ).fetchall()
 
     return render_template("admin.html", stats=stats, latest_users=latest_users)
+
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login() -> str:
+    user = login_required()
+    if not user:
+        return redirect(url_for("home"))
+    if not is_admin_candidate(user):
+        flash("Acces admin reserve au compte kima.", "warning")
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        if password == app.config["ADMIN_PASSWORD"]:
+            session["admin_logged_in"] = True
+            flash("Connexion admin reussie.", "success")
+            return redirect(url_for("admin_dashboard"))
+        flash("Mot de passe admin incorrect.", "warning")
+    return render_template("admin_login.html")
+
+
+@app.route("/admin/logout", methods=["POST"])
+def admin_logout() -> str:
+    session.pop("admin_logged_in", None)
+    flash("Deconnexion admin effectuee.", "success")
+    return redirect(url_for("home"))
 
 
 @app.route("/register", methods=["POST"])
