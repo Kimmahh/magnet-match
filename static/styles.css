@@ -218,6 +218,16 @@ input, textarea, select {
   margin-top: 14px;
 }
 
+.profile-meta {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(122, 102, 89, 0.14);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
 .status-card {
   padding: 12px;
   border-radius: 16px;

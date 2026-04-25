@@ -51,74 +51,16 @@
           <div>{{ format_numbers(collection.duplicates_reserved) }}</div>
         </div>
       </div>
-    </section>
-
-    <section class="panel">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Avis recus</p>
-          <h2>Ta reputation</h2>
-        </div>
-      </div>
-      <p class="rating-big">
-        {% if reviews %}
-          {{ reviews | selectattr('target_user_id', 'equalto', profile['id']) | list | length }} avis visibles
-        {% else %}
-          Aucun avis pour le moment
-        {% endif %}
-      </p>
-      <p class="muted">Plus tu finalises d'echanges propres, plus les autres te feront confiance.</p>
-    </section>
-
-    <section class="panel full-width" id="matching">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Matching</p>
-          <h2>Profils compatibles</h2>
-        </div>
-      </div>
-      <div class="card-grid">
-        {% if matches %}
-          {% for match in matches %}
-            <article class="card">
-              <div class="card__top">
-                <div>
-                  <h3>{{ match.user["username"] }}</h3>
-                  <p class="muted">
-                    {{ match.user["city"] or "Ville non renseignee" }}
-                    {% if match.rating %}
-                      • {{ match.rating }}/5
-                    {% endif %}
-                  </p>
-                </div>
-                <span class="pill pill--good">{{ match.score }}% compatible</span>
-              </div>
-              <p><strong>Peut te donner:</strong> {{ format_numbers(match.offer_to_me) }}</p>
-              <p><strong>Tu peux donner:</strong> {{ format_numbers(match.offer_to_them) }}</p>
-              <p class="muted">Les details pratiques se reglent directement dans le chat apres accord.</p>
-
-              {% if match.existing_trade %}
-                {% if match.existing_trade["status"] == "accepted" %}
-                  <div class="inline-actions">
-                    <span class="pill pill--good">Echange accepte</span>
-                    <a class="button button--primary" href="{{ url_for('home', trade_id=match.existing_trade['id'], chat=1) }}#chat">Tchat</a>
-                  </div>
-                {% else %}
-                  <div class="inline-actions">
-                    <span class="pill">En attente d'acceptation</span>
-                    <a class="button button--ghost" href="{{ url_for('home', trade_id=match.existing_trade['id']) }}#trades">Voir la demande</a>
-                  </div>
-                {% endif %}
-              {% else %}
-                <form method="post" action="{{ url_for('start_trade', target_user_id=match.user['id']) }}">
-                  <button class="button button--primary" type="submit">Selectionner cet echange</button>
-                </form>
-              {% endif %}
-            </article>
-          {% endfor %}
-        {% else %}
-          <div class="empty-state">Ajoute tes manquants et tes doubles disponibles pour voir apparaitre des matchs.</div>
-        {% endif %}
+      <div class="profile-meta">
+        <strong>Reputation</strong>
+        <span class="muted">
+          {% set visible_reviews = reviews | selectattr('target_user_id', 'equalto', profile['id']) | list | length %}
+          {% if visible_reviews %}
+            {{ visible_reviews }} avis visible{% if visible_reviews > 1 %}s{% endif %}
+          {% else %}
+            Aucun avis pour le moment
+          {% endif %}
+        </span>
       </div>
     </section>
 
@@ -184,15 +126,55 @@
       </div>
     </section>
 
-    <section class="panel" id="chat">
+    <section class="panel full-width" id="matching">
       <div class="section-head">
         <div>
-          <p class="eyebrow">Tchat</p>
-          <h2>Acces rapide</h2>
+          <p class="eyebrow">Matching</p>
+          <h2>Profils compatibles</h2>
         </div>
       </div>
-      <div class="empty-state">
-        Une fois l'echange accepte, un bouton <strong>Tchat</strong> apparait dans le matching et dans les demandes.
+      <div class="card-grid">
+        {% if matches %}
+          {% for match in matches %}
+            <article class="card">
+              <div class="card__top">
+                <div>
+                  <h3>{{ match.user["username"] }}</h3>
+                  <p class="muted">
+                    {{ match.user["city"] or "Ville non renseignee" }}
+                    {% if match.rating %}
+                      â€¢ {{ match.rating }}/5
+                    {% endif %}
+                  </p>
+                </div>
+                <span class="pill pill--good">{{ match.score }}% compatible</span>
+              </div>
+              <p><strong>Peut te donner:</strong> {{ format_numbers(match.offer_to_me) }}</p>
+              <p><strong>Tu peux donner:</strong> {{ format_numbers(match.offer_to_them) }}</p>
+              <p class="muted">Les details pratiques se reglent directement dans le chat apres accord.</p>
+
+              {% if match.existing_trade %}
+                {% if match.existing_trade["status"] == "accepted" %}
+                  <div class="inline-actions">
+                    <span class="pill pill--good">Echange accepte</span>
+                    <a class="button button--primary" href="{{ url_for('home', trade_id=match.existing_trade['id'], chat=1) }}#chat">Tchat</a>
+                  </div>
+                {% else %}
+                  <div class="inline-actions">
+                    <span class="pill">En attente d'acceptation</span>
+                    <a class="button button--ghost" href="{{ url_for('home', trade_id=match.existing_trade['id']) }}#trades">Voir la demande</a>
+                  </div>
+                {% endif %}
+              {% else %}
+                <form method="post" action="{{ url_for('start_trade', target_user_id=match.user['id']) }}">
+                  <button class="button button--primary" type="submit">Selectionner cet echange</button>
+                </form>
+              {% endif %}
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">Ajoute tes manquants et tes doubles disponibles pour voir apparaitre des matchs.</div>
+        {% endif %}
       </div>
     </section>
 
@@ -229,7 +211,7 @@
             <article class="card">
               <div class="card__top">
                 <div>
-                  <h3>{{ review["author_name"] }} → {{ review["target_name"] }}</h3>
+                  <h3>{{ review["author_name"] }} â†’ {{ review["target_name"] }}</h3>
                   <p class="muted">{{ review["created_at"] }}</p>
                 </div>
                 <span class="pill pill--good">{{ review["rating"] }}/5</span>
@@ -254,10 +236,10 @@
           </div>
           <a class="button button--ghost" href="{{ url_for('home', trade_id=selected_trade.trade['id']) }}#trades">Fermer</a>
         </div>
-        <div class="chat-box chat-box--modal">
+        <div class="chat-box chat-box--modal" data-chat-box>
           {% for message in selected_trade.messages %}
             <div class="message {% if message['author_user_id'] == profile['id'] %}message--me{% else %}message--other{% endif %}">
-              <div class="message__meta">{{ message["username"] }} • {{ message["created_at"] }}</div>
+              <div class="message__meta">{{ message["username"] }} â€¢ {{ message["created_at"] }}</div>
               <div>{{ message["body"] }}</div>
             </div>
           {% endfor %}
@@ -269,4 +251,25 @@
       </div>
     </div>
   {% endif %}
+  <script>
+    (function () {
+      const chatBox = document.querySelector("[data-chat-box]");
+      if (!chatBox) {
+        return;
+      }
+
+      const scrollToLatestMessage = () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", scrollToLatestMessage, { once: true });
+      } else {
+        scrollToLatestMessage();
+      }
+
+      requestAnimationFrame(scrollToLatestMessage);
+      window.addEventListener("load", scrollToLatestMessage, { once: true });
+    })();
+  </script>
 {% endblock %}
